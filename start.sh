@@ -1,5 +1,3 @@
-sudo apt-get update && sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra ← playwright 실행하고 나서 한글 폰트 깨지는 문제 수정 보완 해야됨
-
 #!/bin/bash
 
 # =============================================================================
@@ -558,7 +556,10 @@ COPY requirements.txt /tmp/
 RUN pip install --upgrade pip setuptools wheel && \\
     pip install -r /tmp/requirements.txt && \\
     playwright install chromium && \\
-    playwright install-deps chromium
+    playwright install-deps chromium && \\
+    apt-get update && \\
+    apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-cjk-extra && \\
+    rm -rf /var/lib/apt/lists/*
 
 RUN fc-cache -fv
 
