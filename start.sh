@@ -294,7 +294,7 @@ log "docker-compose.yml 생성 중..."
 
 VOLUME_OPTS=""
 if [[ "$SYSTEM" == "CentOS7" ]]; then
-    VOLUME_OPTS=",Z"  # 콤마로 시작해야 함!
+    VOLUME_OPTS=",Z"  # SELinux 컨텍스트 (ro와 함께 사용 시 콤마)
 fi
 
 if [[ "$COMPOSE_CMD" == "docker compose" ]]; then
@@ -336,7 +336,7 @@ services:
     container_name: \${PROJECT_NAME}_web
     restart: unless-stopped
     volumes:
-      - ./src:/var/www/html/\${PROJECT_NAME}${VOLUME_OPTS}
+      - ./src:/var/www/html/\${PROJECT_NAME}:Z
       - socket_volume:/var/www/html/\${PROJECT_NAME}/run
       - ./docker/django/scripts:/scripts:ro${VOLUME_OPTS}
     depends_on:
@@ -432,7 +432,7 @@ services:
     container_name: \${PROJECT_NAME}_web
     restart: unless-stopped
     volumes:
-      - ./src:/var/www/html/\${PROJECT_NAME}${VOLUME_OPTS}
+      - ./src:/var/www/html/\${PROJECT_NAME}:Z
       - socket_volume:/var/www/html/\${PROJECT_NAME}/run
       - ./docker/django/scripts:/scripts:ro${VOLUME_OPTS}
     depends_on:
