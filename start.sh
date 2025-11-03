@@ -491,80 +491,74 @@ fi
 
 # Dockerfile 생성
 log "Dockerfile 생성 중..."
-cat > docker/django/Dockerfile << EOF
+cat > docker/django/Dockerfile << 'EOF'
 ARG UBUNTU_VERSION=24.04
-FROM ubuntu:\${UBUNTU_VERSION} AS base
-
+FROM ubuntu:${UBUNTU_VERSION} AS base
 ARG PYTHON_VERSION=3.12
 ARG PROJECT_NAME
-
-ENV DEBIAN_FRONTEND=noninteractive \\
-    PYTHONDONTWRITEBYTECODE=1 \\
-    PYTHONUNBUFFERED=1 \\
-    PYTHONIOENCODING=utf-8 \\
-    TZ=Asia/Seoul \\
-    LANG=ko_KR.UTF-8 \\
-    LC_ALL=ko_KR.UTF-8 \\
+ARG UBUNTU_CODENAME=noble
+ARG DJANGO_VERSION=5.0
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=utf-8 \
+    TZ=Asia/Seoul \
+    LANG=ko_KR.UTF-8 \
+    LC_ALL=ko_KR.UTF-8 \
     LANGUAGE=ko_KR:ko:en_US:en
-
-RUN rm -f /etc/apt/sources.list.d/*.list && \\
-    echo "deb http://mirror.kakao.com/ubuntu/ ${UBUNTU_CODENAME} main restricted universe multiverse" > /etc/apt/sources.list && \\
-    echo "deb http://mirror.kakao.com/ubuntu/ ${UBUNTU_CODENAME}-updates main restricted universe multiverse" >> /etc/apt/sources.list && \\
-    echo "deb http://mirror.kakao.com/ubuntu/ ${UBUNTU_CODENAME}-security main restricted universe multiverse" >> /etc/apt/sources.list && \\
-    echo "deb http://mirror.kakao.com/ubuntu/ ${UBUNTU_CODENAME}-backports main restricted universe multiverse" >> /etc/apt/sources.list && \\
-    apt-get clean && \\
-    rm -rf /var/lib/apt/lists/* && \\
-    apt-get update && \\
-    apt-get install -y --no-install-recommends \\
-    software-properties-common \\
-    build-essential \\
-    pkg-config \\
-    curl \\
-    wget \\
-    vim \\
-    python\${PYTHON_VERSION} \\
-    python\${PYTHON_VERSION}-dev \\
-    python\${PYTHON_VERSION}-venv \\
-    python3-pip \\
-    default-libmysqlclient-dev \\
-    mariadb-client \\
-    netcat-openbsd \\
-    locales \\
-    fonts-nanum \\
-    fontconfig \\
-    wkhtmltopdf \\
-    tzdata \\
+RUN CODENAME=${UBUNTU_CODENAME:-noble} && \
+    rm -f /etc/apt/sources.list.d/*.list && \
+    echo "deb http://mirror.kakao.com/ubuntu/ $CODENAME main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb http://mirror.kakao.com/ubuntu/ $CODENAME-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://mirror.kakao.com/ubuntu/ $CODENAME-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://mirror.kakao.com/ubuntu/ $CODENAME-backports main restricted universe multiverse" >> /etc/apt/sources.list && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    software-properties-common \
+    build-essential \
+    pkg-config \
+    curl \
+    wget \
+    vim \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION}-venv \
+    python3-pip \
+    default-libmysqlclient-dev \
+    mariadb-client \
+    netcat-openbsd \
+    locales \
+    fonts-nanum \
+    fontconfig \
+    wkhtmltopdf \
+    libreoffice \
+    libreoffice-writer \
+    libreoffice-calc \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
-
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python\${PYTHON_VERSION} 1 && \\
-    update-alternatives --install /usr/bin/python python /usr/bin/python\${PYTHON_VERSION} 1
-
-RUN sed -i '/ko_KR.UTF-8/s/^# //g' /etc/locale.gen && \\
-    locale-gen ko_KR.UTF-8 && \\
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python${PYTHON_VERSION} 1
+RUN sed -i '/ko_KR.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen ko_KR.UTF-8 && \
     update-locale LANG=ko_KR.UTF-8 LC_ALL=ko_KR.UTF-8
-
-RUN ln -snf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \\
-    echo "Asia/Seoul" > /etc/timezone && \\
+RUN ln -snf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
+    echo "Asia/Seoul" > /etc/timezone && \
     dpkg-reconfigure -f noninteractive tzdata
-
-WORKDIR /var/www/html/\${PROJECT_NAME}
-
-RUN python\${PYTHON_VERSION} -m venv /opt/venv
-ENV PATH="/opt/venv/bin:\$PATH"
-
+WORKDIR /var/www/html/${PROJECT_NAME}
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt /tmp/
-RUN pip install --upgrade pip setuptools wheel && \\
-    pip install -r /tmp/requirements.txt && \\
-    playwright install chromium && \\
-    playwright install-deps chromium && \\
-    apt-get update && \\
-    apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-cjk-extra && \\
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r /tmp/requirements.txt && \
+    playwright install chromium && \
+    playwright install-deps chromium && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-cjk-extra && \
     rm -rf /var/lib/apt/lists/*
-
 RUN fc-cache -fv
-
 RUN useradd -ms /bin/bash django
-
 EXPOSE 8000
 EOF
 
@@ -599,6 +593,7 @@ arrow==1.3.0
 reportlab==4.0.8
 pdfkit==1.0.0
 weasyprint==60.1
+PyPDF2==3.0.1
 
 # Utilities
 ipython==8.18.1
@@ -1439,7 +1434,7 @@ log "CLAUDE.md 파일 생성 중..."
 # 현재 디렉토리의 절대 경로 저장
 PROJECT_ABSOLUTE_PATH=$(pwd)
 
-cat > src/CLAUDE.md << EOF
+cat > src/CLAUDE.md << 'EOF'
 # Django 프로젝트 개발 가이드
 
 ## 👋 인사말 규칙
@@ -1767,35 +1762,39 @@ $.ajax({
 ## 🌿 Git 브랜치 전략 (필수)
 
 ### 브랜치 구조
-\`\`\`
-main (운영 서버)
-  └── develop (개발 통합)
-        ├── feature/feature1 
-        ├── feature/feature2 
-        └── feature/feature3 
-\`\`\`
+```
+main (메인 브랜치)
+```
 
 ### 개발자 워크플로우
-\`\`\`bash
-# 1. develop 브랜치로 이동
-git checkout develop
+```bash
+# ⚠️ 중요: 반드시 src 폴더로 이동 후 작업!
+cd ~/$PROJECT_NAME/src
+
+# 1. main 브랜치로 이동
+git checkout main
 
 # 2. 최신 상태로 업데이트
-git pull origin develop
+git pull origin main
 
-# 3. 자신의 feature 브랜치 생성 (짧고 명확하게)
-git checkout -b feature/feature1
+# 3. 작업 수행 (코드 작성, 수정 등)
 
-# 4. 작업 & 커밋
+# 4. 커밋 & 푸시 (제로님의 명시적 요청 시에만 실행)
+# ⚠️ 중요: src 폴더 내에서만 실행!
 git add .
 git commit -m "feat: 기능 설명"
+git push origin main
+```
 
-# 5. GitHub에 푸시
-git push origin feature/feature1
+### ⚠️ Git 작업 시 주의사항 (필수!)
+1. **반드시 src 폴더로 이동**: `cd ~/$PROJECT_NAME/src`
+2. **src 폴더 내에서만 git 명령어 실행**: 상위 폴더에서 절대 실행 금지
+3. **git add .는 src 폴더 내 변경사항만 추가**: 다른 폴더 포함 금지
 
-# 6. GitHub에서 Pull Request 생성
-# base: develop ← feature/자기브랜치
-\`\`\`
+### 커밋 규칙
+- **제로님이 요청할 때만 commit & push를 수행합니다**
+- 자동으로 커밋하지 않으며, 명시적인 요청이 있을 때만 실행합니다
+- 운영서버에서는 git clone git@github.com:hyuni75/$PROJECT_NAME.git src 이렇게 동기화 시킨다.
 
 ### 커밋 메시지 규칙
 - **feat**: 새로운 기능 추가
