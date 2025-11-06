@@ -276,7 +276,6 @@ PYTHONIOENCODING=utf-8
 TZ=Asia/Seoul
 EOF
 
-# 환경변수 export 스크립트 생성
 cat > load-env.sh << 'EOF'
 #!/bin/bash
 if [ -f .env ]; then
@@ -533,6 +532,7 @@ RUN CODENAME=${UBUNTU_CODENAME:-noble} && \
     fonts-nanum \
     fontconfig \
     wkhtmltopdf \
+    poppler-utils \
     libreoffice \
     libreoffice-writer \
     libreoffice-calc \
@@ -588,6 +588,8 @@ pillow==10.1.0
 openpyxl==3.1.2
 pandas==2.1.4
 arrow==1.3.0
+matplotlib==3.8.2
+pdf2image==1.16.3
 
 # Document Processing
 reportlab==4.0.8
@@ -1858,6 +1860,10 @@ if [[ "$SYSTEM" == "WSL2" ]]; then
     echo "  2. Linux 파일시스템 사용 권장 (/home/...)"
     success "  3. Vim 한글 설정 완료!"
     echo ""
+    
+    if [[ -f ~/.vimrc ]] && grep -q "encoding=utf-8" ~/.vimrc; then
+        success "Vim 한글 설정이 완료되었습니다."
+    fi
 fi
 
 warning "중요: 환경변수를 현재 셸에 로드하려면 다음 명령을 실행하세요:"
@@ -1881,12 +1887,6 @@ info "프로젝트 초기화 방법:"
 echo "  - ./cleanup_project.sh            # 프로젝트 초기화 (대화형)"
 echo "  - ./cleanup_project.sh $PROJECT_NAME  # 프로젝트 즉시 초기화"
 echo ""
-
-if [[ "$SYSTEM" == "WSL2" ]]; then
-    if [[ -f ~/.vimrc ]] && grep -q "encoding=utf-8" ~/.vimrc; then
-        success "Vim 한글 설정이 완료되었습니다."
-    fi
-fi
 
 success "행운을 빕니다! 🚀"
 success "CLAUDE.md 파일이 src/ 폴더에 생성되었습니다!"
